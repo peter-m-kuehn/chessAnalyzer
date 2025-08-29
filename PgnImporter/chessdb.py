@@ -45,6 +45,8 @@ class GameRecord:
     plycount: int = None
     white_player_id: int = None
     black_player_id: int = None
+    source: str=""
+    import_date: date=None
     
 def connect():
     global conn
@@ -131,12 +133,12 @@ def insert_game (p_game_record):
 
     cursor.execute("insert into game (event, site, game_date, round, result, event_date, event_sponsor, section, stage, board, opening, variation, "
                    "subvariation, eco, nic, game_time, game_utc_date, game_utc_time, time_control, setup, fen, termination, annotator, mode, "
-                   "plycount, white_player_id, black_player_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) returning id",
+                   "plycount, white_player_id, black_player_id,source,import_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) returning id",
                    (p_game_record.event, p_game_record.site, p_game_record.game_date, p_game_record.round, p_game_record.result, p_game_record.event_date, 
                     p_game_record.event_sponsor, p_game_record.section, p_game_record.stage, p_game_record.board, p_game_record.opening, p_game_record.variation, 
                    p_game_record.subvariation, p_game_record.eco, p_game_record.nic, p_game_record.game_time, p_game_record.game_utc_date, 
                    p_game_record.game_utc_time, p_game_record.time_control, p_game_record.setup, p_game_record.fen, p_game_record.termination, 
-                    p_game_record.annotator, p_game_record.mode, p_game_record.plycount, p_game_record.white_player_id, p_game_record.black_player_id,))
+                    p_game_record.annotator, p_game_record.mode, p_game_record.plycount, p_game_record.white_player_id, p_game_record.black_player_id,p_game_record.source,p_game_record.import_date,))
 
     result = cursor.fetchall()
     #conn.commit()
