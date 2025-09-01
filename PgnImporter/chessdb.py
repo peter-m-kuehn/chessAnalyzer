@@ -6,7 +6,6 @@ import mariadb
 conn = None
 cursor = None
 
-#fake_date = datetime(1,1,1)
 @dataclass
 class GameRecord:
     white: str = ""
@@ -47,7 +46,15 @@ class GameRecord:
     black_player_id: int = None
     source: str=""
     import_date: date=None
-    
+
+@dataclass
+class PositionRecord:
+    fen: str = ""
+    move_white: str = ""
+    move_black: str = ""
+    half_move_num: int = None
+    game_id: int = None
+
 def connect():
     global conn
     global cursor
@@ -100,7 +107,6 @@ def insert_player(p_name, p_fide_id):
         cursor.execute("insert into player (name, fide_id) values (?, ?) on duplicate key update fide_id=? returning id", (p_name, p_fide_id, p_fide_id,))
 
     result = cursor.fetchall()
-    #conn.commit()
     
     return result[0][0]   
                        
@@ -111,7 +117,6 @@ def insert_elo (p_player_id, p_elo_num, p_elo_date):
     cursor.execute("insert into elo (player_id, elo_num, elo_date) values (?, ?, ?) on duplicate key update elo_num=? returning player_id", (p_player_id, p_elo_num, p_elo_date, p_elo_num,))
     
     result = cursor.fetchall()
-    #conn.commit()
     
     return result[0][0] 
 
@@ -122,7 +127,6 @@ def insert_title (p_player_id, p_title, p_title_date):
     cursor.execute("insert into title (player_id, title, title_date) values (?, ?, ?) on duplicate key update title=? returning player_id", (p_player_id, p_title, p_title_date, p_title,))
     
     result = cursor.fetchall()
-    #conn.commit()
     
     return result[0][0]     
 
@@ -141,7 +145,9 @@ def insert_game (p_game_record):
                     p_game_record.annotator, p_game_record.mode, p_game_record.plycount, p_game_record.white_player_id, p_game_record.black_player_id,p_game_record.source,p_game_record.import_date,))
 
     result = cursor.fetchall()
-    #conn.commit()
     
     return result[0][0]     
+
+def insert_position(p_position):
+    cursor.execute("insert into position (fen, move_white, move_black, half_move_num, game_id) values (?,?,?,?,?)", (p_position.fen, p_position.move_white, p_position.move_black, p_position.half_move_num, p_position.game_id,))
     
