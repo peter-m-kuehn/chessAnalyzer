@@ -153,6 +153,7 @@ with open("../data/export_total.pgn", encoding="utf8") as pgn:
         num += 1
         game = chess.pgn.read_game(pgn)
         # If there are no more games, exit the loop
+        #if game is None or num>1000:
         if game is None:
             break
         
