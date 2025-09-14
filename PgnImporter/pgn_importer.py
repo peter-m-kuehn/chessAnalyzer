@@ -148,7 +148,7 @@ def insert_positions(p_game, p_game_id):
 db.connect()
 db.rollback() 
 num = 0
-with open("../data/export_total.pgn") as pgn:
+with open("../data/export_total.pgn", encoding="utf8") as pgn:
     while True:
         num += 1
         game = chess.pgn.read_game(pgn)
