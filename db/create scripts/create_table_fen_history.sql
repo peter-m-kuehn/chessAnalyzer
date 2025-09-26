@@ -1,8 +1,5 @@
 CREATE TABLE `fen_history` (
-	`game_date` DATE NOT NULL,
-	`fen_pos` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_general_ci',
-	INDEX `fen_history_compound_i` (`fen_pos`, `game_date`) USING BTREE
-)
-COLLATE='utf8mb4_general_ci'
-ENGINE=InnoDB
-;
+  `game_date` date NOT NULL,
+  `fen_pos` varchar(100) NOT NULL,
+  UNIQUE KEY `fen_history_fen_pos_IDX` (`fen_pos`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
