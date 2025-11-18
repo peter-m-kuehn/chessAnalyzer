@@ -77,8 +77,9 @@ def insert_position_analysis(p_position_analysis):
 
 def get_games(p_id_player):
     cursor.execute(
-        "select id from game where white_player_id=? or black_player_id=? order by game_date, id",
+        "select t.id from (select id, rand(?) zufall from game where white_player_id=? or black_player_id=?) t order by t.zufall LIMIT 350",
         (
+            p_id_player,
             p_id_player,
             p_id_player,
         ),
@@ -88,7 +89,7 @@ def get_games(p_id_player):
 
 def position_analysis_exists(p_game_id):
     cursor.execute(
-        "select count(*) from game g where g.id = ? 	and exists (select 1 from position p join position_analysis pa on (p.id = pa.position_id) where p.game_id = g.id )",
+        "select count(*) from game g where g.id = ? and exists (select 1 from position p join position_analysis pa on (p.id = pa.position_id) where p.game_id = g.id )",
         (p_game_id,),
     )
     row = cursor.fetchone()
