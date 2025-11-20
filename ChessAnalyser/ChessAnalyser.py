@@ -25,9 +25,12 @@ search_limit = chess.engine.Limit(depth=max_depth, time=movetime_sec)
 
 
 def analyze_position(p_fen, p_pos_id):
+    board = chess.Board(p_fen, chess960=False)
+    if board.is_checkmate() or board.is_stalemate():
+        logging.info(f"Position {p_pos_id} is terminal, skipping analysis.")
+        return None # no analysis for terminal positions     
     position_analysis = db.PositionAnalysisRecord()
     position_analysis.position_id = p_pos_id
-    board = chess.Board(p_fen, chess960=False)
     stm = board.turn
     info = engine.analyse(board, search_limit)
     logging.info(f"Analyzed position: {info}")
@@ -67,7 +70,8 @@ def analyse_game(p_game_id):
             pos_id = position_row[0]
             fen = position_row[1]
             position_analysis = analyze_position(fen, pos_id)
-            db.insert_position_analysis(position_analysis)
+            if position_analysis is not None:   
+                db.insert_position_analysis(position_analysis)
 
         db.commit()
         logging.info(f"Finished analyzing game {p_game_id}.")
