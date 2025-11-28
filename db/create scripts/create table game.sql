@@ -32,9 +32,8 @@ CREATE TABLE `game` (
   `import_date` date DEFAULT NULL,
   `source` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `game_id_IDX` (`id`) USING BTREE,
   KEY `game_white_player_id_IDX` (`white_player_id`) USING BTREE,
   KEY `game_black_player_id_IDX` (`black_player_id`) USING BTREE,
   CONSTRAINT `game_player_FK` FOREIGN KEY (`white_player_id`) REFERENCES `player` (`id`),
   CONSTRAINT `game_player_FK_1` FOREIGN KEY (`black_player_id`) REFERENCES `player` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=138017 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11711853 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
