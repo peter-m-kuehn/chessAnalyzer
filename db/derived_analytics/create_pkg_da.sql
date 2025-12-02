@@ -13,10 +13,7 @@ CREATE OR REPLACE PACKAGE BODY da as
 	as
 		v_win_percent double;
 	begin
-		logging.log('calc_win_percent()');
-		logging.log('p_centipawns: '||p_centipawns);
 		v_win_percent := 50.0 + 50.0 * (2.0 / (1.0 + exp(-0.00368208 * p_centipawns)) - 1.0);
-		logging.log('v_win_percent: '||v_win_percent);
 		return v_win_percent;
 	end calc_win_percent;
 	
@@ -25,21 +22,14 @@ CREATE OR REPLACE PACKAGE BODY da as
 		v_win_diff double;
 		v_accuracy double;
 	begin
-logging.log('calc_accuracy()');
-logging.log('p_winpercent_before: '||p_winpercent_before);
-logging.log('p_winpercent_after: '||p_winpercent_after);
-
 		if p_winpercent_after >= p_winpercent_before then
-		logging.log('accuracy: 100.0');
 			return (100.0);
 		end if;
 	
 		v_win_diff := p_winpercent_before - p_winpercent_after;
-logging.log('v_win_diff: '||v_win_diff);
 		v_accuracy := 103.1668 * exp(-0.04354 * (v_win_diff)) - 3.1669;
 		v_accuracy := greatest(v_accuracy, 0.0);
 		v_accuracy := least(v_accuracy, 100.0);
-logging.log('v_accuracy: '||v_accuracy);
 		
 		return(v_accuracy);
 	end calc_accuracy;
@@ -114,53 +104,31 @@ logging.log('v_accuracy: '||v_accuracy);
 	    order by g.id, p.half_move_num
 		)
 		loop
-		logging.log('position_id: '||v_rec.position_id);
 			if v_rec.best_move_uci_prv is null or v_rec.game_id <> v_rec.game_id_prv
 			then
 				continue; -- no move evaluation available
 			end if;
 			v_da_position_rec := null;
 			v_total_prv := v_rec.wins_prv + v_rec.draws_prv + v_rec.losses_prv;
-		logging.log('v_total_prv: '||v_total_prv);
 			v_win_rate_prv := v_rec.wins_prv / v_total_prv;
-		logging.log('v_win_rate_prv: '||v_win_rate_prv);
 			v_loss_rate_prv := v_rec.losses_prv / v_total_prv;
-		logging.log('v_loss_rate_prv: '||v_loss_rate_prv);
-			
-			if ((v_rec.half_move_num - 1) MOD 2 = 0) 
-			then -- prior black move
-			    logging.log('black moved');
-				v_black_winning_chances_prv := calc_win_percent(v_rec.centipawn_prv);
-				v_white_winning_chances_prv := 100 - v_black_winning_chances_prv;
-			else -- white moved
-				logging.log('white moved');
-				v_white_winning_chances_prv := calc_win_percent(v_rec.centipawn_prv);
-				v_black_winning_chances_prv := 100 - v_white_winning_chances_prv;
-			end if;		
-		logging.log('v_white_winning_chances_prv: '||v_white_winning_chances_prv);
-		logging.log('v_black_winning_chances_prv: '||v_black_winning_chances_prv);
+			v_white_winning_chances_prv := calc_win_percent(v_rec.centipawn_prv);
+			v_black_winning_chances_prv := 100 - v_white_winning_chances_prv;
 	
 			v_total := v_rec.wins + v_rec.draws + v_rec.losses;
-		logging.log('v_total: '||v_total);
 			v_score := v_rec.wins + v_rec.draws / 2;
-		logging.log('v_score: '||v_score);
 			v_score_rate := v_score / v_total;
-		logging.log('v_score_rate: '||v_score_rate);
 			v_win_rate := v_rec.wins / v_total;
-		logging.log('v_win_rate: '||v_win_rate);
 			v_draw_rate := v_rec.draws / v_total;
-		logging.log('v_draw_rate: '||v_draw_rate);
 			v_loss_rate := v_rec.losses / v_total;
-		logging.log('v_loss_rate: '||v_loss_rate);
 			
 			v_white_winning_chances := calc_win_percent(v_rec.centipawn);
 			v_black_winning_chances := 100 - v_white_winning_chances;
-			logging.log('v_white_winning_chances: '||v_white_winning_chances);
-			logging.log('v_black_winning_chances: '||v_black_winning_chances);
+			-- logging.log('v_white_winning_chances: '||v_white_winning_chances);
+			-- logging.log('v_black_winning_chances: '||v_black_winning_chances);
 				
 			if (v_rec.half_move_num MOD 2 = 0) 
 			then -- black moved
-				logging.log('black moved');
 				v_black_score_rate := 100 * v_score_rate;
 				v_white_score_rate := 100 * (1 - v_score_rate);
 				if (v_rec.move_black = v_rec.best_move_uci_prv) then
@@ -169,7 +137,6 @@ logging.log('v_accuracy: '||v_accuracy);
 				    v_accuracy := calc_accuracy(v_black_winning_chances_prv, v_black_winning_chances);
 				end if;
 			else -- white moved
-				logging.log('white moved');
 				v_white_score_rate := 100 * v_score_rate;
 				v_black_score_rate := 100 * (1 - v_score_rate);
 				if (v_rec.move_white = v_rec.best_move_uci_prv) then
