@@ -33,6 +33,28 @@ CREATE OR REPLACE PACKAGE BODY da as
 		
 		return(v_accuracy);
 	end calc_accuracy;
+		
+	function calc_judgement (p_winpercent_before in double, p_winpercent_after in double) return varchar2
+	as
+		v_win_diff double;
+		v_judgement varchar2(100);
+	begin
+		if p_winpercent_after >= p_winpercent_before then
+			return ('ENGINE');
+		end if;
+	
+		v_win_diff := p_winpercent_before - p_winpercent_after;
+		
+		if v_win_diff >= 30.0 then
+			v_judgement := 'BLUNDER';
+		elsif v_win_diff >= 20.0 then
+			v_judgement := 'MISTAKE';
+		elsif v_win_diff >= 10.0 then
+			v_judgement := 'INACCURACY';
+		end if;
+		
+		return(v_judgement);
+	end calc_judgement;
 	
 	procedure upsert_da_position(p_da_position_rec in da_position%rowtype)
 	as
@@ -66,7 +88,7 @@ CREATE OR REPLACE PACKAGE BODY da as
 	    v_score_rate, v_draw_rate, v_loss_rate, v_white_score_rate, v_black_score_rate double;
 		v_loss_rate_prv, v_accuracy, v_black_winning_chances_prv, v_black_winning_chances double;
 		v_white_draw_rate, v_black_draw_rate double;
-	
+		v_judgement varchar2(100);
 		v_da_position_rec da_position%rowtype;
 	begin
 		for v_rec in 
@@ -133,16 +155,20 @@ CREATE OR REPLACE PACKAGE BODY da as
 				v_white_score_rate := 100 * (1 - v_score_rate);
 				if (v_rec.move_black = v_rec.best_move_uci_prv) then
 					v_accuracy := 100.0;
+					v_judgement := 'ENGINE';
 				else
 				    v_accuracy := calc_accuracy(v_black_winning_chances_prv, v_black_winning_chances);
+					v_judgement := calc_judgement(v_black_winning_chances_prv, v_black_winning_chances);
 				end if;
 			else -- white moved
 				v_white_score_rate := 100 * v_score_rate;
 				v_black_score_rate := 100 * (1 - v_score_rate);
 				if (v_rec.move_white = v_rec.best_move_uci_prv) then
 					v_accuracy := 100.0;
+					v_judgement := 'ENGINE';
 				else
 				    v_accuracy := calc_accuracy(v_white_winning_chances_prv, v_white_winning_chances);
+					v_judgement := calc_judgement(v_white_winning_chances_prv, v_white_winning_chances);
 				end if;
 			end if;
 			v_white_draw_rate := 100 * v_draw_rate;
@@ -159,7 +185,7 @@ CREATE OR REPLACE PACKAGE BODY da as
 			v_da_position_rec.black_score_rate := v_black_score_rate; 
 			v_da_position_rec.black_draw_rate := v_black_draw_rate;
 			v_da_position_rec.accuracy := v_accuracy;
-			v_da_position_rec.judgement := 'ENGINE';
+			v_da_position_rec.judgement := v_judgement;
 			v_da_position_rec.sharpness := 0.0;
 			--
 			-- upsert record
