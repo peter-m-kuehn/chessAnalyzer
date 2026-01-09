@@ -55,6 +55,23 @@ CREATE OR REPLACE PACKAGE BODY da as
 		
 		return(v_judgement);
 	end calc_judgement;
+		
+	function calc_sharpness (p_win in integer, p_loose in integer) return double
+	as
+		v_win_rescaled double;
+		v_loose_rescaled double;
+		v_sharpness double;
+	begin	
+		if p_win = 0 or p_loose = 0 then
+			return null;
+		end if;
+	
+		v_win_rescaled := p_win / 1000.0;
+		v_loose_rescaled := p_loose / 1000.0;
+		v_sharpness := pow(2.0 / (log(1.0 / v_win_rescaled - 1.0) + log(1.0 / v_loose_rescaled - 1.0)), 2);
+	
+	    return v_sharpness;
+	end calc_sharpness;
 	
 	procedure upsert_da_position(p_da_position_rec in da_position%rowtype)
 	as
@@ -186,7 +203,7 @@ CREATE OR REPLACE PACKAGE BODY da as
 			v_da_position_rec.black_draw_rate := v_black_draw_rate;
 			v_da_position_rec.accuracy := v_accuracy;
 			v_da_position_rec.judgement := v_judgement;
-			v_da_position_rec.sharpness := 0.0;
+			v_da_position_rec.sharpness := calc_sharpness(v_rec.wins, v_rec.losses);
 			--
 			-- upsert record
 			--
