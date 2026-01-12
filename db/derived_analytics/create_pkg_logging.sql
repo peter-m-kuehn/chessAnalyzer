@@ -2,7 +2,7 @@ SET SESSION SQL_MODE='ORACLE';
 DELIMITER //
 
 CREATE DEFINER="chess_user"@"%" PACKAGE "logging" AS
-  -- must be delared as public!
+  -- must be declared as public!
   PROCEDURE log(p_msg IN varchar2);
 END
 //
