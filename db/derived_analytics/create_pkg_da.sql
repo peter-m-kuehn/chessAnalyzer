@@ -2,7 +2,7 @@ SET SESSION SQL_MODE='ORACLE';
 DELIMITER //
 
 CREATE OR REPLACE PACKAGE da AS
-  -- must be delared as public!
+  -- must be declared as public!
   PROCEDURE gen_da_position(p_player_id NUMBER(20));
 END da;
 //
