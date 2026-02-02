@@ -4,6 +4,7 @@ DELIMITER //
 CREATE OR REPLACE PACKAGE da AS
   -- must be declared as public!
   PROCEDURE gen_da_position(p_player_id NUMBER(20));
+  procedure gen_da_game;
 END da;
 //
 
@@ -211,6 +212,158 @@ CREATE OR REPLACE PACKAGE BODY da as
 		end loop;
 		
 	end gen_da_position;
+	
+	procedure gen_da1game (p_game_id NUMBER(20))
+	as
+		v_acpl_white double;
+	    v_acpl_black double;
+		v_stdcpl_white double;
+		v_stdcpl_black double;
+		v_accuracy_avg_white double;
+		v_accuracy_avg_black double;
+		v_sum_engine_moves_white integer;
+		v_sum_engine_moves_black integer;
+		v_sum_normal_moves_white integer;
+		v_sum_normal_moves_black integer;
+		v_sum_mistake_moves_white integer;
+		v_sum_mistake_moves_black integer;
+		v_sum_blunder_moves_white integer;
+		v_sum_blunder_moves_black integer;
+		v_game_length integer;
+	begin
+		select
+			avg(cpl_white) acpl_white,
+			avg(cpl_black) acpl_black,
+			stddev_samp(cpl_white) stdcpl_white,
+			stddev_samp(cpl_black) stdcpl_black,
+			avg(case when cpl_white is not null then accuracy else null end) accuracy_avg_white,
+			avg(case when cpl_black is not null then accuracy else null end) accuracy_avg_black,
+			sum(case when cpl_white is not null and judgement = 'ENGINE' then 1 else 0 end) sum_engine_moves_white,
+			sum(case when cpl_black is not null and judgement = 'ENGINE' then 1 else 0 end) sum_engine_moves_black,
+			sum(case when cpl_white is not null and judgement is null then 1 else 0 end) sum_normal_moves_white,
+			sum(case when cpl_black is not null and judgement is null then 1 else 0 end) sum_normal_moves_black,
+			sum(case when cpl_white is not null and judgement = 'MISTAKE' then 1 else 0 end) sum_mistake_moves_white,
+			sum(case when cpl_black is not null and judgement = 'MISTAKE' then 1 else 0 end) sum_mistake_moves_black,
+			sum(case when cpl_white is not null and judgement = 'BLUNDER' then 1 else 0 end) sum_blunder_moves_white,
+			sum(case when cpl_black is not null and judgement = 'BLUNDER' then 1 else 0 end) sum_blunder_moves_black,
+			max(half_move_num) game_length
+			into
+			v_acpl_white,
+			    v_acpl_black,
+				v_stdcpl_white,
+				v_stdcpl_black,
+				v_accuracy_avg_white,
+				v_accuracy_avg_black,
+				v_sum_engine_moves_white,
+				v_sum_engine_moves_black ,
+				v_sum_normal_moves_white,
+				v_sum_normal_moves_black,
+				v_sum_mistake_moves_white,
+				v_sum_mistake_moves_black,
+				v_sum_blunder_moves_white,
+				v_sum_blunder_moves_black,
+				v_game_length
+		from
+				(
+			select
+						t.half_move_num ,
+						t.move_white,
+						t.move_black,
+						t.best_move_uci,
+						t.centipawn,
+						case
+							when t.half_move_num mod 2 = 0 then null
+					else case
+								when t.accuracy >= 99 then 0
+						else (t.centipawn_prv - t.centipawn) * t.inverse_sign
+					end
+				end cpl_white,
+						case
+							when t.half_move_num mod 2 = 1 then null
+					else case
+								when t.accuracy >= 99 then 0
+						else (t.centipawn_prv - t.centipawn) * t.inverse_sign
+					end
+				end cpl_black,
+						t.accuracy,
+							t.judgement ,
+							t.sharpness
+			from
+						(
+				select
+							p.half_move_num ,
+							case
+								when p.half_move_num mod 2 = 1 then 1
+						else -1
+					end inverse_sign,
+							p.move_white ,
+							p.move_black ,
+							pa.best_move_uci ,
+							pa.centipawn ,
+							lag(pa.centipawn) over (
+				order by
+							p.game_id,
+							p.half_move_num ) as centipawn_prv,
+							dp.accuracy,
+							dp.judgement ,
+							dp.sharpness
+				from
+							chess.position p
+				join chess.position_analysis as pa on
+							p.id = pa.position_id
+				left outer join chess.da_position as dp on
+							dp.position_id = pa.position_id
+				where
+							p.game_id = p_game_id
+				order by
+							p.game_id,
+							p.half_move_num ) t ) t2;
+		insert into
+			da_game (game_id,
+			acpl_white,
+			acpl_black,
+			stdcpl_white,
+			stdcpl_black,
+			accuracy_avg_white,
+			accuracy_avg_black,
+			sum_engine_moves_white,
+			sum_engine_moves_black,
+			sum_normal_moves_white,
+			sum_normal_moves_black,
+			sum_mistake_moves_white,
+			sum_mistake_moves_black,
+			sum_blunder_moves_white,
+			sum_blunder_moves_black,
+			game_length)
+		values (p_game_id,
+			v_acpl_white,
+			v_acpl_black,
+			v_stdcpl_white,
+			v_stdcpl_black,
+			v_accuracy_avg_white,
+			v_accuracy_avg_black,
+			v_sum_engine_moves_white,
+			v_sum_engine_moves_black,
+			v_sum_normal_moves_white,
+			v_sum_normal_moves_black,
+			v_sum_mistake_moves_white,
+			v_sum_mistake_moves_black,
+			v_sum_blunder_moves_white,
+			v_sum_blunder_moves_black,
+			v_game_length);
+	end gen_da1game;
+	
+	procedure gen_da_game
+	as
+	begin
+		truncate table da_game;
+		for v_rec in (select distinct p.game_id from da_position dap join position p on p.id =dap.position_id order by game_id)
+		loop
+			gen_da1game(v_rec.game_id);
+			commit;
+		end loop;
+		
+	end gen_da_game;
 end da;
 //
 
