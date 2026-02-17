@@ -225,6 +225,8 @@ CREATE OR REPLACE PACKAGE BODY da as
 		v_sum_engine_moves_black integer;
 		v_sum_normal_moves_white integer;
 		v_sum_normal_moves_black integer;
+		v_sum_inaccurate_moves_white integer;
+		v_sum_inaccurate_moves_black integer;
 		v_sum_mistake_moves_white integer;
 		v_sum_mistake_moves_black integer;
 		v_sum_blunder_moves_white integer;
@@ -242,6 +244,8 @@ CREATE OR REPLACE PACKAGE BODY da as
 			sum(case when cpl_black is not null and judgement = 'ENGINE' then 1 else 0 end) sum_engine_moves_black,
 			sum(case when cpl_white is not null and judgement is null then 1 else 0 end) sum_normal_moves_white,
 			sum(case when cpl_black is not null and judgement is null then 1 else 0 end) sum_normal_moves_black,
+			sum(case when cpl_white is not null and judgement = 'INACCURACY' then 1 else 0 end) sum_inaccurate_moves_white,
+			sum(case when cpl_black is not null and judgement = 'INACCURACY' then 1 else 0 end) sum_inaccurate_moves_black,
 			sum(case when cpl_white is not null and judgement = 'MISTAKE' then 1 else 0 end) sum_mistake_moves_white,
 			sum(case when cpl_black is not null and judgement = 'MISTAKE' then 1 else 0 end) sum_mistake_moves_black,
 			sum(case when cpl_white is not null and judgement = 'BLUNDER' then 1 else 0 end) sum_blunder_moves_white,
@@ -258,6 +262,8 @@ CREATE OR REPLACE PACKAGE BODY da as
 				v_sum_engine_moves_black ,
 				v_sum_normal_moves_white,
 				v_sum_normal_moves_black,
+				v_sum_inaccurate_moves_white,
+				v_sum_inaccurate_moves_black,
 				v_sum_mistake_moves_white,
 				v_sum_mistake_moves_black,
 				v_sum_blunder_moves_white,
@@ -330,6 +336,8 @@ CREATE OR REPLACE PACKAGE BODY da as
 			sum_engine_moves_black,
 			sum_normal_moves_white,
 			sum_normal_moves_black,
+			sum_inaccurate_moves_white,
+			sum_inaccurate_moves_black,
 			sum_mistake_moves_white,
 			sum_mistake_moves_black,
 			sum_blunder_moves_white,
@@ -346,6 +354,8 @@ CREATE OR REPLACE PACKAGE BODY da as
 			v_sum_engine_moves_black,
 			v_sum_normal_moves_white,
 			v_sum_normal_moves_black,
+			v_sum_inaccurate_moves_white,
+			v_sum_inaccurate_moves_black,
 			v_sum_mistake_moves_white,
 			v_sum_mistake_moves_black,
 			v_sum_blunder_moves_white,
