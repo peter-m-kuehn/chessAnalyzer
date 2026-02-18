@@ -12,3 +12,6 @@ import huge pgn-Databases into SQL-Database for analysis and research purposes w
 2. Partien bestimmter Spieler analysieren
 
 3. Statistische Analysen erstellen und grafisch aufbereiten
+
+## Dokumentation
+https://peter-kuehn.de/wiki/wer-ist-der-beste-schachspieler-aller-zeiten/
